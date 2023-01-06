@@ -1,0 +1,4 @@
+[2023-01-05 22:02:31] GPU 0 usage spiked from 64% to 10%
+[2023-01-05 22:02:41] GPU 0 usage spiked from 1% to 56%
+[2023-01-05 22:02:41] GPU 0 usage spiked from 56% to 95%
+[2023-01-05 22:02:41] GPU 0 usage spiked from 95% to 33%

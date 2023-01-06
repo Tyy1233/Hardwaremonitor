@@ -10,7 +10,7 @@ def monitor_cpu():
     cpu_percent = psutil.cpu_percent(interval=1)
 
     # Check if there has been a sudden spike in usage
-    threshold = 30  # Change this value to adjust the sensitivity
+    threshold = 15  # Change this value to adjust the sensitivity
     if abs(cpu_percent - monitor_cpu.last_cpu_percent) > threshold:
         # Get the current time and format it as a string
         time_stamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -29,7 +29,7 @@ monitor_cpu.last_cpu_percent = 0
 
 
 
-def monitor_gpu(last_utilization=[0]):
+def monitor_gpu(last_utilization):
     # Run the nvidia-smi command
     output = subprocess.run(["nvidia-smi", "--query-gpu=utilization.gpu", "--format=csv"], stdout=subprocess.PIPE).stdout.decode("utf-8").strip()
 
@@ -39,7 +39,7 @@ def monitor_gpu(last_utilization=[0]):
     utilization = [int(line.split(",")[0].strip(" %")) for line in values]
 
     # Check if there has been a sudden spike in usage
-    threshold = 20  # Change this value to adjust the sensitivity
+    threshold = 30  # Change this value to adjust the sensitivity
     for i, u in enumerate(utilization):
         if abs(u - last_utilization[i]) > threshold:
             # Get the current time and format it as a string
@@ -50,9 +50,14 @@ def monitor_gpu(last_utilization=[0]):
                 f.write(f"[{time_stamp}] GPU {i} usage spiked from {last_utilization[i]}% to {u}%\n")
 
     # Store the current utilization for the next iteration
-    last_utilization = utilization
+    return utilization
 
-monitor_gpu()
+# Initialize the last_utilization variable
+last_utilization = [0]
+
+while True:
+    last_utilization = monitor_gpu(last_utilization)
+
 
 
 
@@ -90,7 +95,7 @@ def monitor_memory():
     memory_percent = psutil.virtual_memory().percent
 
     # Check if there has been a sudden spike in usage
-    threshold = 5  # Change this value to adjust the sensitivity
+    threshold = 2  # Change this value to adjust the sensitivity
     if abs(memory_percent - monitor_memory.last_memory_percent) > threshold:
         # Get the current time and format it as a string
         time_stamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -109,21 +114,7 @@ monitor_memory.last_memory_percent = 0
 
 
 
-def monitor_top_processes():
-    # Get the top 5 processes by CPU usage
-    top_processes = sorted(psutil.process_iter(), key=lambda p: p.cpu_percent(), reverse=True)[:5]
 
-    # Format the output
-    output = ""
-    for p in top_processes:
-        output += f"{p.name()}: {p.cpu_percent():.1f}% CPU\n"
-
-    # Get the current time and format it as a string
-    time_stamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    
-    # Write the output to the text file
-    with open("spikes.txt", "a") as f:
-        f.write(f"[{time_stamp}] Top processes:\n{output}\n")
 
 
 def main():
@@ -132,7 +123,7 @@ def main():
         monitor_gpu()
         monitor_hard_drives()
         monitor_memory()
-        monitor_top_processes()
+        
         time.sleep(1)
 
 main()
