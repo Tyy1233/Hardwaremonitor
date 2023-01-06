@@ -10,7 +10,7 @@ def monitor_cpu():
     cpu_percent = psutil.cpu_percent(interval=1)
 
     # Check if there has been a sudden spike in usage
-    threshold = 15  # Change this value to adjust the sensitivity
+    threshold = 5  # Change this value to adjust the sensitivity
     if abs(cpu_percent - monitor_cpu.last_cpu_percent) > threshold:
         # Get the current time and format it as a string
         time_stamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -55,10 +55,23 @@ def monitor_gpu(last_utilization):
 # Initialize the last_utilization variable
 last_utilization = [0]
 
-while True:
-    last_utilization = monitor_gpu(last_utilization)
 
 
+def monitor_top_processes():
+    # Get the top 5 processes by CPU usage
+    top_processes = sorted(psutil.process_iter(), key=lambda p: p.cpu_percent(), reverse=True)[:5]
+
+    # Format the output
+    output = ""
+    for p in top_processes:
+        output += f"{p.name()}: {p.cpu_percent():.1f}% CPU\n"
+
+    # Get the current time and format it as a string
+    time_stamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    
+    # Write the output to the text file
+    with open("spikes.txt", "a") as f:
+        f.write(f"[{time_stamp}] Top processes:\n{output}\n")
 
 
 
@@ -118,12 +131,16 @@ monitor_memory.last_memory_percent = 0
 
 
 def main():
-    while True:
-        monitor_cpu()
-        monitor_gpu()
-        monitor_hard_drives()
-        monitor_memory()
-        
-        time.sleep(1)
+    # Initialize the last_utilization variable
+    
 
-main()
+    while True:
+        # Run the GPU, CPU, memory, and top processes monitors
+        
+        monitor_cpu()
+        monitor_memory()
+        monitor_top_processes()
+        monitor_gpu
+        # Run the hard drive monitor every 60 seconds
+        monitor_hard_drives()
+main()       
